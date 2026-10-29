@@ -1,0 +1,348 @@
+KATIKA DATA LAB 1.0
+Métrés, devis, simulations, matériaux, paiements simulés et carnet de chantier
+Édition du 29 octobre 2026
+
+PRESENTATION
+
+Application pédagogique en français inspirée de la maquette fournie : fond sombre,
+cartes analytiques en haut, matrice au centre, ellipse de dépendance à droite,
+panneau de paiements Orange Money / MTN MoMo en dessous. Les nombres affichés
+sont calculés ; les valeurs décoratives de la maquette ne sont pas reproduites.
+
+Les cinq modules sont reliés par les chantiers et devis :
+- métrés et devis en FCFA ;
+- risques et données probabilistes ;
+- encyclopédie BTP embarquée ;
+- paiements et dataset de démonstration ;
+- carnet de chantier avec photo, audio et coordonnées.
+
+Le dossier livré contient exactement app.py, requirement.text et README.
+Les styles, fonctions, composants et illustrations sont regroupés dans app.py.
+Les tests, captures, bases, jeux de données, exports et archives restent ailleurs.
+
+INSTALLATION ET LANCEMENT SOUS WINDOWS / VS CODE
+
+Ouvrir le dossier katika-btp-lab dans VS Code, puis Terminal > Nouveau terminal :
+
+    cd "C:\Users\FIFEN HOUSSEIN\Desktop\APP\katika-btp-lab"
+    python -m pip install -r requirement.text
+    python -m streamlit run app.py
+
+Pour obtenir explicitement le thème sombre de la maquette :
+    python -m streamlit run app.py --theme.base dark
+Ou choisir Dark / Sombre dans le menu Streamlit en haut à droite.
+Pour ne pas créer de __pycache__ dans le dossier livré :
+    python -B -m streamlit run app.py --theme.base dark
+
+Le terminal indique l'adresse locale ; le lancement préparé ici utilise
+http://localhost:8540/. Un lancement standard utilise souvent le port 8501.
+Ctrl+C arrête un serveur lancé dans le terminal.
+Python 3.14 et Streamlit 1.65 ont été utilisés lors des contrôles.
+Choisir l'interpréteur Python installé dans VS Code si python n'est pas reconnu.
+
+Bibliothèques : Streamlit (interface, formulaires, audio et composant GPS), NumPy
+(tirages et calcul vectoriel), pandas (tableaux et CSV), SciPy (Bêta, normale et
+quantiles), Plotly (graphiques), Pillow (photos et illustrations), openpyxl (Excel),
+ReportLab (PDF). Les modules sqlite3, json, pathlib, decimal et datetime sont
+inclus dans Python et ne doivent pas être ajoutés aux dépendances pip.
+
+PREMIERE DECOUVERTE
+
+Cliquer Charger l'exemple fictif. Il contient :
+- CE-2084, Fondations - Villa Horizon, Yaoundé, ressources 600 000 FCFA ;
+- CE-2085, Dallage - Atelier Delta, Douala, ressources 900 000 FCFA ;
+- deux devis calculés, 12 paiements simulés réussis, une observation fictive.
+
+Les 10 règlements de Yaoundé sont 7 Orange Money et 3 MTN MoMo ; les deux autres
+sont MTN à Douala. Chaque règlement fictif vaut 10 000 FCFA.
+Ces données ne constituent aucune enquête locale ni statistique de marché.
+Recharger l'exemple réinitialise ses modifications. Mes projets est un espace
+distinct, enregistré sur le serveur ; l'exemple reste dans la session.
+
+Le menu supérieur contient sept rubriques : Tableau de bord, Métrés et devis,
+Risques et données, Encyclopédie BTP, Paiements, Carnet de chantier, Données et aide.
+Le choix Chantier actif s'applique aux devis, calculs, paiements et observations.
+Le tableau de bord reprend trois cartes de la maquette, suivies des paiements.
+Sur téléphone, les cartes passent en colonne et les boutons de navigation se
+répartissent sur plusieurs lignes. Les tableaux larges défilent horizontalement.
+
+METRES ET DEVIS : CONVENTIONS ET FORMULES
+
+Le modèle porte sur un volume rectangulaire équivalent :
+    surface = longueur x largeur (m²)
+    volume = surface x hauteur ou épaisseur (m³)
+
+Coefficients de quantité saisis : dosage de ciment kg/m³, sable et gravier m³ par
+m³ de béton, eau en L par kg de ciment, acier en kg par m³ de béton.
+Les dosages 150, 250 et 350 kg/m³ peuvent être explorés, sans présumer d'un usage
+structurel ni d'une résistance. Les coefficients initiaux sont des hypothèses.
+Le ratio d'acier ne dimensionne pas les armatures. Aucune norme n'est validée.
+
+Exemple de référence : 5 x 4 x 0,15 m = 3 m³ ; dosage ciment 350 kg/m³.
+    Ciment théorique = 3 x 350 = 1 050 kg.
+    Sans marge, sac de 50 kg : 21 sacs.
+    Marge 5 % : besoin 1 102,5 kg ; achat arrondi au supérieur : 23 sacs.
+La masse théorique est distincte de la masse achetée après marge et arrondi.
+La même marge s'applique aux quantités de sable, gravier, eau et acier.
+
+Paramètres initiaux : sable 0,5 m³/m³, gravier 0,8 m³/m³, eau/ciment 0,5 L/kg,
+acier 80 kg/m³, marge 5 %, main-d'œuvre/forfaits 100 000 FCFA, taxe saisie 0 %.
+Prix fictifs : ciment 5 500/sac de 50 kg, sable 20 000/m³, gravier 25 000/m³,
+eau 25/L, acier 650/kg. Aucun de ces prix n'est présenté comme un tarif local.
+
+Résultat initial :
+    Ciment : 23 sacs, 126 500 FCFA.
+    Sable : 1,575 m³, 31 500 FCFA.
+    Gravier : 2,52 m³, 63 000 FCFA.
+    Eau : 551,25 L, 13 781 FCFA après arrondi.
+    Acier : 252 kg, 163 800 FCFA.
+    Main-d'œuvre / forfaits : 100 000 FCFA.
+    Total : 498 581 FCFA.
+L'arrondi monétaire se fait au FCFA le plus proche, demi-unité vers le haut.
+Les quantités d'unités différentes ne sont pas additionnées.
+
+Calculer et enregistrer le devis crée une nouvelle référence DEV-xxxx.
+Les analyses utilisent le dernier devis du chantier, pas les saisies non validées.
+PDF : lignes, quantités, hypothèses et total. Excel : mêmes lignes et total.
+Le lien WhatsApp prépare un texte ; il n'envoie rien et ne joint pas le PDF.
+L'utilisateur doit choisir le destinataire et joindre lui-même le fichier.
+
+MODELE DE RISQUE : R, S ET M
+
+Interprétation retenue : R est la ressource financière disponible à l'horizon ;
+S est la dépense totale estimée (devis, fluctuations, incident éventuel et frais
+hypothétiques) ; M est le moyen de paiement simulé, une catégorie OM/MTN.
+L'événement étudié est S > R : déficit à cet horizon. Il ne s'agit pas de la
+probabilité de ruine d'un processus de trésorerie suivi dans le temps.
+
+R suit une loi lognormale de moyenne égale aux ressources du chantier, de CV
+saisi. Les montants restent positifs ; une ressource moyenne nulle reste nulle.
+Pour une moyenne m, un CV c et un score Z normal standard :
+    sigma = sqrt(log(1 + c²))
+    valeur = m x exp(sigma x Z - sigma²/2)
+
+Le coût de référence est le dernier devis. Sans devis, l'hypothèse est 500 000
+FCFA et les poids ciment/acier/sable sont 0,25 / 0,30 / 0,15, affichés comme
+hypothétiques. Avec un devis, les poids sont les parts de ses postes dans le total.
+Les prix ciment, acier et sable sont soumis à des multiplicateurs lognormaux.
+Les autres postes restent fixes dans cette étape. Un facteur global lognormal
+du coût est ensuite appliqué ; il représente une incertitude supplémentaire.
+
+Les trois scores gaussiens des matériaux ont une corrélation hypothétique :
+            Ciment   Acier   Sable
+    Ciment  1        0,65    0,32
+    Acier   0,65     1       0,48
+    Sable   0,32     0,48    1
+La matrice doit être symétrique positive semi-définie ; une combinaison impossible
+de corrélations est refusée. Les valeurs sont modifiables, sans donnée de marché.
+Les corrélations des prix transformés diffèrent de celles des scores latents.
+La covariance calculée et affichée concerne les variations de prix simulées,
+exprimées en points de pourcentage au carré ; la diagonale contient des variances.
+Une corrélation est distincte d'une causalité.
+
+L'incident est Bernoulli(p). En cas d'incident, le surcoût est :
+    intensité U ~ Bêta(alpha, beta) x surcoût maximum.
+Valeurs initiales : alpha=3,8 et beta=2, occurrence 30 %, maximum 150 000 FCFA.
+Les deux paramètres de la loi Bêta sont explicites. Le « 3,8 » n'est pas assimilé
+à un indice de fiabilité. Moyenne de U = alpha/(alpha+beta).
+
+Un score global de coût et un score de ressource sont normaux standards corrélés
+avec rho=0,45 par défaut. Ils servent aux transformations lognormales.
+L'ellipse à 95 % concerne ces deux scores GAUSSIENS, pas les FCFA de R et S.
+Leur courbe contient un domaine théorique obtenu avec le quantile du chi-deux
+à deux degrés de liberté. S comprend d'autres facteurs et n'est pas normale.
+
+M est tiré selon la préférence a posteriori OM de la ville du chantier.
+Les frais hypothétiques s'ajoutent au coût : coût de référence x taux lié à M.
+Ils sont nuls par défaut et ne représentent pas une tarification opérateur.
+Aucun montant réel n'est facturé par l'application.
+
+1 000, 10 000 ou 100 000 tirages ; graine 42 initiale.
+La probabilité est le nombre de tirages S>R divisé par le nombre total.
+L'intervalle de Wilson à 95 % décrit la précision Monte-Carlo, pas la pertinence
+des hypothèses. L'indice beta = -Phi^-1(Pdéficit) est présenté seulement si la
+fréquence est strictement comprise entre 0 et 1 ; il reste distinct de la loi Bêta.
+Les paramètres sauvegardés et les tirages sont reproductibles dans le même
+environnement. Les résultats sont recalculés en fonction du devis et des données.
+
+BAYES ET PREFERENCES DE PAIEMENT
+
+Seuls les règlements simulés Réussi sont utilisés, par ville.
+    a_posterior = a_prior + nombre OM
+    b_posterior = b_prior + nombre MTN
+    moyenne_posterior = a_posterior / (a_posterior + b_posterior)
+Avec l'a priori uniforme Bêta(1,1), Yaoundé dans l'exemple a une fréquence brute
+7/10 = 70 %, puis un posterior Bêta(8,4), moyenne 66,7 %.
+Sans observation, l'application le dit explicitement et utilise uniquement
+l'a priori. Ces préférences concernent les observations simulées de l'application,
+pas les habitants d'une ville ni un sondage représentatif.
+Les copies restaurées incluent leur historique ; ne pas les traiter comme de
+nouvelles observations indépendantes pour une étude réelle de préférences.
+
+PAIEMENTS : DEMONSTRATION EXCLUSIVEMENT
+
+Choisir le devis, saisir un montant inférieur ou égal au solde simulé et cliquer
+sur le bouton Orange Money ou MTN MoMo. La référence TRX-xxxx est créée En attente.
+Les actions suivantes permettent de simuler Réussi, Échoué ou Annulé.
+Une transaction finalisée ne change plus de statut. Répéter la confirmation
+d'un même succès est idempotent : aucun double règlement n'est comptabilisé.
+Le solde est revérifié à la confirmation ; deux tentatives en attente ne peuvent
+pas conduire à un dépassement du devis après validation des deux.
+
+Le dataset garde une ligne par transaction avec son statut courant, sans append
+dupliqué à chaque changement de statut. Les échecs restent dans l'historique ;
+ils ne sont pas comptés parmi les sommes réglées ou les préférences.
+Le dataset contient référence, chantier, devis, ville, méthode, montant, statut,
+date et mode=simulation. Il n'enregistre aucun téléphone, code PIN ou secret.
+
+Les deux boutons ne sont pas branchés à des comptes marchands. La version ne
+collecte pas d'argent, n'appelle pas les API opérateurs et ne vérifie aucun
+paiement réel. Un branchement réel demanderait comptes marchands, clés via
+environnement, serveur de confirmation vérifié et traitement des événements
+idempotent. Aucun bouton « sécurisé / sans frais » non justifié n'est affiché.
+
+ENCYCLOPEDIE
+
+Sept fiches : sable, gravier, calcaire, grès, granite, ciment et acier.
+Catégories : granulats, roches, liants, métalliques.
+Chaque fiche comporte définition, usage, observation et source consultable.
+Les images sont des ILLUSTRATIONS synthétiques intégrées, pas des photos
+diagnostiques de matériaux. Elles ne permettent pas d'identifier une roche.
+La recherche est textuelle avec normalisation des accents et quelques mots-clés,
+sans IA ni service payant. « test à l'acide » retrouve notamment Calcaire.
+Le test à l'acide n'est pas proposé comme essai autonome de conformité.
+
+Les fiches et illustrations s'affichent sans Internet si le serveur est local.
+Un export texte est lisible hors connexion sur téléphone. Le site lui-même a
+besoin d'un serveur accessible : ce n'est pas une PWA autonome hors réseau.
+Les liens de sources, fonds de carte et WhatsApp nécessitent Internet.
+
+CARNET DE CHANTIER
+
+Créer un chantier avec nom, ville, ressources prévues et une référence CE-xxxx.
+Le retrouver via les cartes cliquables ou le choix Chantier actif.
+Photo de présentation facultative. Les coordonnées peuvent être saisies en
+degrés décimaux WGS84 ou proposées par le bouton GPS, avec autorisation du
+navigateur. Sur localhost ou HTTPS, si disponible, celui-ci fournit la position.
+Le refus ou l'absence de géolocalisation laisse la saisie manuelle disponible.
+Le navigateur n'enregistre la position dans le registre qu'après validation
+du formulaire du chantier. Le fond de carte nécessite une connexion Internet.
+
+Ajouter une observation : date au plus tard aujourd'hui, avancement 0-100 %,
+texte, photo et/ou note vocale. Il faut au moins un contenu texte, photo ou audio.
+Le dernier état déclaré est celui de l'observation la plus récente selon la
+date, puis l'horodatage. Une observation antidatée ne remplace pas un état plus
+récent. L'application ne calcule pas l'avancement à partir des pixels.
+
+Audio : enregistrement natif via microphone du navigateur ou fichier WAV, MP3,
+M4A, OGG, WebM, 8 Mo maximum. La note est sauvegardée et réécoutable, sans
+transcription ni service externe. Certains codecs dépendent du navigateur.
+Photos : JPEG/PNG/WebP, 5 Mo et 20 millions de pixels maximum ; réorientation,
+compression JPEG et suppression des métadonnées EXIF avant enregistrement.
+Les 20 observations récentes sont affichées ; le JSON contient le carnet complet.
+
+STOCKAGE ET SAUVEGARDE
+
+Windows : Documents\Codex\data\katika-btp-lab\katika.sqlite3 dans le profil actif.
+Linux : ~/.local/share/katika-btp-lab/katika.sqlite3.
+KATIKA_DATA_DIR permet un autre dossier situé hors de l'application.
+Mes projets utilise SQLite, avec révision et écriture atomique du registre.
+Tous les visiteurs du même serveur partagent ce registre ; aucun compte séparé.
+Après un enregistrement réel, dataset_chantiers.csv est reconstruit dans ce
+même dossier de données. En cas d'indisponibilité de la copie CSV, l'export reste
+générable depuis la base. L'exemple fictif ne remplace aucun de ces fichiers.
+
+Limites : 30 projets, 300 devis, 2 000 transactions, 500 observations, 25 Mo de
+données sérialisées. Ne pas stocker les tests dans le dossier livré.
+La sauvegarde JSON contient photos, audio, hypothèses et relations entre objets.
+La restauration ajoute des copies avec nouvelles références et conserve les
+données déjà présentes. Une sauvegarde fictive est refusée dans Mes projets.
+Restaurer plusieurs fois peut dupliquer les historiques ; tester dans l'exemple.
+Sur un hébergement au disque temporaire, conserver un JSON régulièrement :
+SQLite sur ce disque n'est pas une base distante durable.
+
+GITHUB ET STREAMLIT COMMUNITY CLOUD
+
+Conserver requirement.text dans le dossier livré. Pour Community Cloud, préparer
+un AUTRE dossier de déploiement contenant app.py, README et une copie de
+requirement.text nommée requirements.txt. Ce nom standard est attendu pour pip.
+
+Depuis le dossier de déploiement, après création d'un dépôt GitHub vide :
+    git init
+    git add app.py README requirements.txt
+    git commit -m "Premiere version de KATIKA DATA LAB"
+    git branch -M main
+    git remote add origin https://github.com/gc7258728-cmyk/katika-btp-lab.git
+    git remote -v
+    git push -u origin main
+Le nom et le lien sont des exemples à créer ; aucun dépôt n'a été publié ici.
+Sur Community Cloud : Create app, dépôt, branche main, fichier app.py.
+Pour Paste URL, après publication du dépôt :
+    https://github.com/gc7258728-cmyk/katika-btp-lab/blob/main/app.py
+Choisir une version Python compatible, vérifier l'installation dans les logs et
+activer le thème sombre via le menu si une préférence navigateur l'a changé.
+Les fonctions GPS/microphone dépendent des permissions et de HTTPS hors localhost.
+La collecte durable et les paiements réels nécessiteraient une architecture
+serveur adaptée ; ils ne sont pas fournis comme services actifs dans ce prototype.
+
+Mise à jour de la copie de déploiement après test :
+    git status
+    git add app.py README requirements.txt
+    git commit -m "Mise a jour KATIKA DATA LAB"
+    git push
+
+TESTS DE REFERENCE
+
+1. Charger l'exemple : deux projets, deux devis, douze paiements simulés réussis.
+2. Paramètres initiaux du premier devis : 3 m³, 1 050 kg théoriques, 23 sacs
+   après marge 5 %, total 498 581 FCFA. Solde simulé 398 581 FCFA (100 000 réglés).
+3. Marge ramenée à 0 % : 21 sacs, total 474 625 FCFA ; nouveau devis enregistré.
+4. CV ressources, coût, trois prix = 0 ; incident = 0 ; frais = 0 : avec
+   ressources 600 000 et devis 498 581, marge fixe 101 419, aucun déficit.
+5. Yaoundé exemple : fréquence OM 70 %, posterior 8/12 = 66,7 %.
+6. Créer une tentative de 10 000, simuler Réussi : une ligne, solde diminué
+   de 10 000 une seule fois. Échoué ne diminue pas le solde.
+7. Créer un chantier, joindre une observation et 50 % : historique et carte
+   actualisés, pièces jointes conservées dans la sauvegarde.
+8. Recherche test à l'acide : fiche Calcaire. Catégorie Métalliques : Acier.
+9. Exporter et restaurer l'exemple : copies avec références nouvelles et devis,
+   transactions et observations rattachés aux bons nouveaux projets.
+
+SOURCES
+
+Les fiches donnent leurs liens respectifs. Sources pédagogiques principales :
+https://pubs.usgs.gov/fs/2008/3089/
+https://www.usgs.gov/faqs/what-are-sedimentary-rocks?qt-news_science_products=0
+https://floridadep.gov/fgs/geologic-topics/content/all-about-rocks
+https://www.usgs.gov/publications/natural-aggregates-conterminous-united-states
+https://www.infociments.fr/sites/default/files/article/fichier/CT-T53.pdf
+Paiements, informations institutionnelles uniquement, aucune API activée :
+https://www.orange.cm/fr/om-partenaires/partenaire-webpayment.html
+https://momodevelopercommunity.mtn.com/p/momo-api-frequetly-asked-questions
+Déploiement :
+https://docs.streamlit.io/deploy/streamlit-community-cloud/deploy-your-app/app-dependencies
+
+VERIFICATIONS DE LIVRAISON
+
+Version contrôlée le 29 octobre 2026 sous Windows, Python 3.14 et Streamlit 1.65.
+
+- 14 tests automatisés réussis : calculs exacts, arrondis, matrices valides,
+  simulation reproductible à 100 000 tirages, cas déterministe, posterior de
+  Bayes, transitions de paiement et refus des doubles règlements, sauvegarde,
+  pièces jointes, SQLite et projection CSV. Les sept rubriques ont aussi été
+  parcourues avec Streamlit AppTest sans exception.
+- Parcours navigateur complet à 1 440 px et à 320 px : saisie d'un devis,
+  téléchargements PDF/Excel et 100 000 scénarios CSV, paiements réussi/échoué,
+  création de chantier, photo, fichier vocal WAV, progression à 50 %, sauvegarde,
+  restauration et séparation de l'espace fictif et du registre réel.
+- Contrôle des sept rubriques à 768 px et 390 px ; absence de débordement
+  horizontal et inspection des captures sur ordinateur et téléphone.
+- Contenu des PDF, classeurs, CSV et sauvegardes téléchargés vérifié. Le devis
+  PDF a été rendu en image et contrôlé visuellement et dans ses marges.
+- Le GPS a été testé avec une position simulée dans le navigateur. Le fichier
+  audio a été importé et son lecteur affiché ; un enregistrement réel avec un
+  microphone et une position GPS physique restent à essayer sur ton appareil.
+- Aucun paiement réel ni déploiement public n'a été effectué. La disponibilité
+  des fonds de carte dépend de la connexion et des services de cartographie.
+- Le registre de travail est vide à la livraison ; les essais ont utilisé
+  uniquement l'exemple fictif et des bases temporaires séparées.
